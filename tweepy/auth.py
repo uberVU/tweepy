@@ -12,12 +12,14 @@ def oauth_callback(r, consumer, access_token):
     authenticate a new request before it is sent.
     """
     is_form_encoded = isinstance(r.data, list)
-    if is_form_encoded:
+    if is_form_encoded and len(r.data) > 0:
         parameters = dict(r.data)
+        parameters.update(r.params)
         body = None
     else:
-        parameters = None
-        body = r.data
+        is_form_encoded = False
+        parameters = r.params
+        body = ''
 
     request = Request.from_consumer_and_token(consumer,
         token=access_token, http_method=r.method, http_url=r.url,

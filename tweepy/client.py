@@ -1,3 +1,4 @@
+import sys
 import requests
 from urlparse import urljoin
 
@@ -24,7 +25,7 @@ class Client(object):
         response_format: the response format to request. Ex: json(default), xml, rss, atom
                          The parser must support the selected response format.
         """
-        self.base_url = '%s://%s/%s' % ('https' if secure else 'http', host, api_version)
+        self.base_url = '%s://%s/%s/' % ('https' if secure else 'http', host, api_version)
 
         if isinstance(auth, tuple):
             self.session = requests.session(auth=auth)
@@ -47,7 +48,7 @@ class Client(object):
         url = '%s.%s' % (urljoin(self.base_url, url), self.response_format)
 
         try:
-            r = self.session.request(method, url, data=parameters)
+            r = self.session.request(method, url, params=dict(parameters))
         except requests.exceptions.RequestException, e:
             raise TweepyError('Request error: %s' % e)
 
@@ -55,14 +56,44 @@ class Client(object):
             error_msg = self.parser.parse_error(r.content)
             raise TweepyError('API error: %s' % error_msg)
 
-        if self.parser:
+        if self.parser and len(r.content) > 0:
             return self.parser.parse_content(r.content)
         else:
             return r.content
 
+    def home_timeline(self, **parameters):
+        """GET statuses/home_timeline"""
+        return self.request('GET', 'statuses/home_timeline', paramters)
+
+    def mentions(self, **parameters):
+        """GET statuses/mentions"""
+        return self.request('GET', 'statuses/mentions', parameters)
+
     def public_timeline(self, **parameters):
         """GET statuses/public_timeline"""
         return self.request('GET', 'statuses/public_timeline', parameters)
+
+    def retweeted_by_me(self, **parameters):
+        """GET statuses/retweeted_by_me"""
+        return self.request('GET', 'statuses/retweeted_by_me', parameters)
+
+    def retweeted_to_me(self, **parameters):
+        """GET statuses/retweeted_to_me"""
+        return self.request('GET', 'statuses/retweeted_to_me', parameters)
+
+    def retweets_of_me(self, **parameters):
+        """GET statuses/retweets_of_me"""
+        return self.request('GET', 'statuses/retweets_of_me', parameters)
+
+    def user_timeline(self, screen_name=None, user_id=None, **parameters):
+        """GET statuses/user_timeline"""
+        parameters.update({'screen_name': screen_name, 'user_id': user_id})
+        return self.request('GET', 'statuses/user_timeline', parameters)
+
+    def retweeted_to_user(self, id=None, screen_name=None, **parameters):
+        """GET statuses/retweeted_to_user"""
+        parameters.update({'id': id, 'screen_name': screen_name})
+        return self.request('GET', 'statuses/retweeted_to_user', parameters)
 
     def update_status(self, status, **parameters):
         """POST statuses/update"""
