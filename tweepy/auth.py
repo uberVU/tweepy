@@ -1,37 +1,40 @@
 import requests
+from requests.auth import AuthBase, HTTPBasicAuth
 
 from tweepy import TweepyError
 from tweepy.oauth2 import Consumer, Request, SignatureMethod_HMAC_SHA1, Token
 
 oauth_signature_method = SignatureMethod_HMAC_SHA1()
 
-def oauth_callback(r, consumer, access_token):
-    """OAuth authentication callback.
+class OAuth(AuthBase):
+    def __init__(self, consumer, access_token):
+        self.consumer = consumer
+        self.access_token = access_token
 
-    This will get called by Requests when we need to
-    authenticate a new request before it is sent.
-    """
-    is_form_encoded = isinstance(r.data, list)
-    if is_form_encoded and len(r.data) > 0:
-        parameters = dict(r.data)
-        parameters.update(r.params)
-        body = None
-    else:
-        is_form_encoded = False
-        parameters = r.params
-        body = ''
+    def __call__(self, r):
+        is_form_encoded = isinstance(r.data, list)
+        if is_form_encoded and len(r.data) > 0:
+            parameters = dict(r.data)
+            parameters.update(r.params)
+            body = None
+        else:
+            is_form_encoded = False
+            parameters = r.params
+            body = ''
 
-    request = Request.from_consumer_and_token(consumer,
-        token=access_token, http_method=r.method, http_url=r.url,
-        parameters=parameters, body=body, is_form_encoded=is_form_encoded)
+        request = Request.from_consumer_and_token(
+            self.consumer,
+            token=self.access_token,
+            http_method=r.method,
+            http_url=r.url,
+            parameters=parameters,
+            body=body,
+            is_form_encoded=is_form_encoded)
 
-    request.sign_request(oauth_signature_method, consumer, access_token)
+        request.sign_request(oauth_signature_method, self.consumer, self.access_token)
 
-    r.headers.update(request.to_header())
-    return r
-
-Basic = 'basic'
-OAuth = oauth_callback
+        r.headers.update(request.to_header())
+        return r
 
 class OAuthFlow(object):
     """OAuth flow helper"""
