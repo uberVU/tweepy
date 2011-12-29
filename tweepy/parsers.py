@@ -15,10 +15,17 @@ class Parser(object):
         """Parse the error response and return a message describing it."""
         raise NotImplementedError
 
-class JSONParser(Parser):
-    """Parses JSON formatted responses."""
+    def supports_format(self, response_format):
+        """Determine if this parse supports the given response format.
 
-    accepted_formats = ['json']
+        response_format -- The format this parser may support.
+
+        Returns: True if the format is supported.
+        """
+        return False
+
+class JSONParser(Parser):
+    """Deserializes JSON responses into Python objects."""
 
     def parse_content(self, content):
         try:
@@ -29,8 +36,12 @@ class JSONParser(Parser):
         return result
 
     def parse_error(self, content):
-        error = json.loads(content)
+        try:
+            error = json.loads(content)
+        except Exception, e:
+            return content
         return error.get('error', 'Unknown: %s' % content)
 
-default_json_parser = JSONParser()
+    def supports_format(self, response_format):
+        return response_format == 'json'
 
