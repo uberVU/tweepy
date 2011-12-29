@@ -12,7 +12,6 @@ class Client(object):
         auth=None,
         host='twitter.com',
         secure=True,
-        api_version='1',
         parser=JSONParser(),
         response_format='json'):
         """Create a new client object.
@@ -22,14 +21,12 @@ class Client(object):
                 These modes of authentication are supported: OAuth, Basic.
         host -- Hostname of the API server. Defaults to api.twitter.com
         secure -- Uses HTTPS if true (default), otherwise HTTP if false.
-        api_version -- Which version of the API to use. Defaults to 1.
         parser -- An instance of the parser which extends the Parser class.
                   By default the JSONParser will be used.
         response_format -- The response format to request from the server.
                            Examples: json (default), xml, rss, atom.
         """
-        self.base_url = '%s://%%s.%s/%s/' % \
-            ('https' if secure else 'http', host, api_version)
+        self.base_url = '%s://%%s.%s/' % ('https' if secure else 'http', host)
 
         self.session = requests.session(auth=auth, config={'verbose': sys.stdout})
 
@@ -40,7 +37,7 @@ class Client(object):
         self.parser = parser
         self.response_format = response_format
 
-    def request(self, method, url, parameters=None, files=None, subdomain='api'):
+    def request(self, method, url, parameters={}, files=None, subdomain='api'):
         """Send a request to API server.
 
         method: type of HTTP method to send (ex: GET, DELETE, POST)
@@ -70,7 +67,7 @@ class Client(object):
 
         Returns: List of status objects.
         """
-        return self.request('GET', 'statuses/home_timeline', paramters)
+        return self.request('GET', '1/statuses/home_timeline', paramters)
 
     def mentions(self, **parameters):
         """Returns the most recent mentions (status containing @username) for
@@ -78,7 +75,7 @@ class Client(object):
 
         Returns: List of status objects.
         """
-        return self.request('GET', 'statuses/mentions', parameters)
+        return self.request('GET', '1/statuses/mentions', parameters)
 
     def public_timeline(self, **parameters):
         """Returns the most recent statuses, including retweets, from
@@ -86,14 +83,14 @@ class Client(object):
 
         Returns: List of status objects.
         """
-        return self.request('GET', 'statuses/public_timeline', parameters)
+        return self.request('GET', '1/statuses/public_timeline', parameters)
 
     def retweeted_by_me(self, **parameters):
         """Returns the most recent retweets posted by the authenticating user.
 
         Returns: List of status objects.
         """
-        return self.request('GET', 'statuses/retweeted_by_me', parameters)
+        return self.request('GET', '1/statuses/retweeted_by_me', parameters)
 
     def retweeted_to_me(self, **parameters):
         """Returns the most recent retweets posted by the users the
@@ -101,7 +98,7 @@ class Client(object):
 
         Returns: List of status objects.
         """
-        return self.request('GET', 'statuses/retweeted_to_me', parameters)
+        return self.request('GET', '1/statuses/retweeted_to_me', parameters)
 
     def retweets_of_me(self, **parameters):
         """Returns the most recent tweets of the authenticated user
@@ -109,7 +106,7 @@ class Client(object):
 
         Returns: List of status objects.
         """
-        return self.request('GET', 'statuses/retweets_of_me', parameters)
+        return self.request('GET', '1/statuses/retweets_of_me', parameters)
 
     def user_timeline(self, screen_name=None, user_id=None, **parameters):
         """Returns the most recent statuses posted by the authenticating user.
@@ -124,7 +121,7 @@ class Client(object):
         Returns: List of status objects.
         """
         parameters.update({'screen_name': screen_name, 'user_id': user_id})
-        return self.request('GET', 'statuses/user_timeline', parameters)
+        return self.request('GET', '1/statuses/user_timeline', parameters)
 
     def retweeted_to_user(self, id=None, screen_name=None, **parameters):
         """Returns the most recent retweets posted by users the specified user
@@ -136,7 +133,7 @@ class Client(object):
         Returns: List of status objects.
         """
         parameters.update({'id': id, 'screen_name': screen_name})
-        return self.request('GET', 'statuses/retweeted_to_user', parameters)
+        return self.request('GET', '1/statuses/retweeted_to_user', parameters)
 
     def retweeted_by_user(self, id=None, screen_name=None, **parameters):
         """Returns the most recent retweets posted by the specified user.
@@ -148,7 +145,7 @@ class Client(object):
         Returns: List of status objects.
         """
         parameters.update({'id': id, 'screen_name': screen_name})
-        return self.request('GET', 'statuses/retweeted_by_user', parameters)
+        return self.request('GET', '1/statuses/retweeted_by_user', parameters)
 
     def retweeted_by(self, status_id, only_ids=False, **parameters):
         """Show user objects up to 100 members who retweeted the status.
@@ -160,9 +157,9 @@ class Client(object):
         Returns: List of user objects or IDs (if only_ids is true).
         """
         if only_ids:
-            url = 'statuses/%s/retweeted_by/ids'
+            url = '1/statuses/%s/retweeted_by/ids'
         else:
-            url = 'statuses/%s/retweeted_by'
+            url = '1/statuses/%s/retweeted_by'
         return self.request('GET', url % status_id, parameters)
 
     def retweets(self, status_id, **parameters):
@@ -172,7 +169,7 @@ class Client(object):
 
         Returns: List of status objects.
         """
-        url = 'statuses/retweets/%s' % status_id
+        url = '1/statuses/retweets/%s' % status_id
         return self.request('GET', url, parameters)
 
     def show_status(self, status_id, **parameters):
@@ -182,7 +179,7 @@ class Client(object):
 
         Returns: A status object.
         """
-        url = 'statuses/show/%s' % status_id
+        url = '1/statuses/show/%s' % status_id
         return self.request('GET', url, parameters)
 
     def destroy_status(self, status_id, **parameters):
@@ -193,7 +190,7 @@ class Client(object):
 
         Returns: A status object which was deleted.
         """
-        url = 'statuses/destroy/%s' % status_id
+        url = '1/statuses/destroy/%s' % status_id
         return self.request('POST', url, parameters)
 
     def retweet(self, status_id, **parameters):
@@ -204,7 +201,7 @@ class Client(object):
 
         Returns: A status object.
         """
-        url = 'statuses/retweet/%s' % status_id
+        url = '1/statuses/retweet/%s' % status_id
         return self.request('POST', url, parameters)
 
     def update_status(self, status, media=None, **parameters):
@@ -219,16 +216,87 @@ class Client(object):
 
         Returns: A status object.
         """
-        parameters.update({'status': status})
+        parameters['status'] = status
 
         if isinstance(media, str):
             media = (media, open(media, 'rb'))
         if isinstance(media, tuple):
             return self.request('POST',
-                                'statuses/update_with_media',
+                                '1/statuses/update_with_media',
                                 parameters,
                                 files={'media[]': media},
                                 subdomain='upload')
 
-        return self.request('POST', 'statuses/update', parameters)
+        return self.request('POST', '1/statuses/update', parameters)
+
+    def oembed_status(self, status_id, **parameters):
+        """Returns information allowing the creation of an embedded
+           representation of a status. See the oEmbed spec for more details.
+
+        status_id -- The status ID to return embed code for.
+
+        Returns: A oEmbed object.
+        """
+        parameters['id'] = status_id
+        return self.request('GET', '1/statuses/oembed', parameters)
+
+    def search(self, query, **parameters):
+        """Returns tweets that match a specified query.
+
+        query -- Search query.
+
+        Returns: A search result object.
+        """
+        parameters['q'] = query
+        return self.request('GET', 'search', parameters, subdomain='search')
+
+    def direct_messages(self, **parameters):
+        """Returns the most recent direct messages sent
+           to the authenticating user.
+
+        Returns: A list of direct message objects.
+        """
+        return self.request('GET', '1/direct_messages', parameters)
+
+    def direct_messages_sent(self, **parameters):
+        """Returns the most recent direct messages sent by
+           the authenticating user.
+
+        Returns: A list of direct message objects.
+        """
+        return self.request('GET', '1/direct_messages/sent', parameters)
+
+    def destroy_direct_message(self, message_id, **parameters):
+        """Destroys the direct message specified by the ID.
+
+        message_id -- The ID of the direct message to delete.
+
+        Returns: A direct message object (that was deleted).
+        """
+        url = '1/direct_messages/destroy/%s' % message_id
+        return self.request('POST', url, parameters)
+
+    def send_direct_message(self, text, user_id=None, screen_name=None, **parameters):
+        """Send a new direct message to the specified user.
+
+        text -- The text of your direct message.
+        user_id -- The ID of the user who should receive the direct message.
+        screen_name -- The screen name of the user who should receive
+                       the direct message.
+
+        Returns: A direct message object (which was sent).
+        """
+        parameters.update({'text': text,
+                           'user_id': user_id,
+                           'screen_name': screen_name})
+        return self.request('POST', '1/direct_messages/new', parameters)
+
+    def show_direct_message(self, message_id):
+        """Returns a single direct message specified by ID.
+
+        message_id -- The ID of the direct message to return.
+
+        Returns: A direct message object.
+        """
+        return self.request('GET', '1/direct_messages/show/%s' % message_id)
 
