@@ -108,43 +108,41 @@ class Client(object):
         """
         return self.request('GET', '1/statuses/retweets_of_me', parameters)
 
-    def user_timeline(self, screen_name=None, user_id=None, **parameters):
+    def user_timeline(self, user=None, **parameters):
         """Returns the most recent statuses posted by the authenticating user.
-           It is also possible to request another user's timeline by using
-           the screen_name or user_id parameter.
+           It is also possible to specify the user to return results for.
 
-        user_id -- (optional) The ID of the user for whom to return
-                   results for.
-        screen_name -- (optional) The screen name of the user for whom
-                       to return results for.
+        user -- (optional) Screen name or ID of the user for whom
+                           to return results for.
 
         Returns: List of status objects.
         """
-        parameters.update({'screen_name': screen_name, 'user_id': user_id})
-        return self.request('GET', '1/statuses/user_timeline', parameters)
+        if user:
+            url = '1/statuses/user_timeline/%s' % user
+        else:
+            url = '1/statuses/user_timeline'
+        return self.request('GET', url, parameters)
 
-    def retweeted_to_user(self, id=None, screen_name=None, **parameters):
+    def retweeted_to_user(self, user=None, **parameters):
         """Returns the most recent retweets posted by users the specified user
            follows. Identical to retweeted_to_me, but allows providing user.
 
-        id -- The ID or screen name of the user for whom to return results.
-        screen_name -- The screen name of the user for whom to return results.
+        user -- The ID or screen name of the user for whom to return results.
 
         Returns: List of status objects.
         """
-        parameters.update({'id': id, 'screen_name': screen_name})
+        parameters['id'] = user
         return self.request('GET', '1/statuses/retweeted_to_user', parameters)
 
-    def retweeted_by_user(self, id=None, screen_name=None, **parameters):
+    def retweeted_by_user(self, user=None, **parameters):
         """Returns the most recent retweets posted by the specified user.
            Identical to retweeted_by_me except you can choose the user.
 
-        id -- The ID or screen name of the user for whom to return results.
-        screen_name -- The screen name of the user for whom to return results.
+        user -- The ID or screen name of the user for whom to return results.
 
         Returns: List of status objects.
         """
-        parameters.update({'id': id, 'screen_name': screen_name})
+        parameters['id'] = user
         return self.request('GET', '1/statuses/retweeted_by_user', parameters)
 
     def retweeted_by(self, status_id, only_ids=False, **parameters):
@@ -276,19 +274,16 @@ class Client(object):
         url = '1/direct_messages/destroy/%s' % message_id
         return self.request('POST', url, parameters)
 
-    def send_direct_message(self, text, user_id=None, screen_name=None, **parameters):
+    def send_direct_message(self, text, user=None, **parameters):
         """Send a new direct message to the specified user.
 
         text -- The text of your direct message.
-        user_id -- The ID of the user who should receive the direct message.
-        screen_name -- The screen name of the user who should receive
-                       the direct message.
+        user -- The ID or screen name of the user who
+                should receive the direct message.
 
         Returns: A direct message object (which was sent).
         """
-        parameters.update({'text': text,
-                           'user_id': user_id,
-                           'screen_name': screen_name})
+        parameters.update({'text': text, 'user': user})
         return self.request('POST', '1/direct_messages/new', parameters)
 
     def show_direct_message(self, message_id):
@@ -299,4 +294,134 @@ class Client(object):
         Returns: A direct message object.
         """
         return self.request('GET', '1/direct_messages/show/%s' % message_id)
+
+    def followers(self, user=None, **parameters):
+        """Returns an array of numeric IDs for every user
+           following the specified user.
+
+        user -- The ID or screen name of the user for
+                whom to return results for.
+
+        Returns: A list of IDs.
+        """
+        parameters['user'] = user
+        return self.request('GET', '1/followers/ids', parameters)
+
+    def friends(self, user=None, **parameters):
+        """Returns an array of numeric IDs for every user
+           the specified user is following.
+
+        user -- The ID or screen name of the user for
+                whom to return results for.
+
+        Returns: A list of IDs.
+        """
+        parameters['user'] = user
+        return self.request('GET', '1/friends/ids', parameters)
+
+    def friendship_exists(self, user_a, user_b, **parameters):
+        """Test for the existence of friendship between two users.
+
+        user_a -- The user you are checking the relationship from.
+        user_b -- The user you are checking the relationship to.
+
+        Returns: True if user_a follows user_b, otherwise False.
+        """
+        parameters.update({'user_a': user_a, 'user_b': user_b})
+        return self.request('GET', '1/friendships/exists', parameters)
+
+    def incoming_friendships(self, **parameters):
+        """Returns an array of numeric IDs for every user who has a
+           pending request to follow the authenticating user.
+
+        Returns: A list of IDs.
+        """
+        return self.request('GET', '1/friendships/incoming', parameters)
+
+    def outgoing_friendships(self, **parameters):
+        """Returns an array of numeric IDs for every protected user for whom
+           the authenticating user has a pending follow request.
+
+        Returns: A list of IDs.
+        """
+        return self.request('GET', '1/friendships/outgoing', parameters)
+
+    def show_friendship(self, source=None, target=None, **parameters):
+        """Returns detailed information about the relationship
+           between two users.
+
+        source -- The screen name of the subject user.
+            OR
+        source_id -- The ID of the subject user.
+
+        target -- The screen name of the target user.
+            OR
+        target_id -- The ID of the target user.
+
+        Returns: A friendship information object.
+        """
+        parameters.update({'source_screen_name': source,
+                           'target_screen_name': target})
+        return self.request('GET', '1/friendships/show', parameters)
+
+    def create_friendship(self, user, **parameters):
+        """Allows the authenticating user to follow an user.
+
+        user -- The ID or screen name of the user to follow.
+
+        Return: An user object.
+        """
+        if user:
+            url = '1/friendships/create/%s' % user
+        else:
+            url = '1/friendships/create'
+        return self.request('POST', url, parameters)
+
+    def destroy_friendship(self, user, **parameters):
+        """Allows the authenticating user to unfollow an user.
+
+        user -- The ID or screen name of the user to unfollow.
+
+        Returns: An user object.
+        """
+        if user:
+            url = '1/friendships/destroy/%s' % user
+        else:
+            url = '1/friendships/destroy'
+        return self.request('POST', url, parameters)
+
+    def lookup_friendships(self, users=None, user_ids=None, **parameters):
+        """Returns the relationship of the authenticating user to the
+           list of users provided. Values of connections can be:
+           following, following_requested, followed_by, and none.
+
+        users -- A list of screen names of users to request. (max 100)
+        user_ids -- A list of IDs of users to request. (max 100)
+
+        Returns: A list of relationship objects.
+        """
+        if users:
+            parameters['screen_name'] = ','.join(users)
+        if user_ids:
+            parameters['user_id'] = ','.join([str(ID) for ID in user_ids])
+        return self.request('GET', '1/friendships/lookup', parameters)
+
+    def update_friendship(self, user, device=None, retweets=None, **parameters):
+        """Allows one to enable or disable retweets and device notifications
+           from the specified user.
+
+        user -- The user for whom to update friendship.
+        """
+        parameters.update({'screen_name': user,
+                           'device': device,
+                           'retweets': retweets})
+        return self.request('POST', '1/friendships/update', parameters)
+
+    def no_retweet_friendships(self, **parameters):
+        """Returns an array of user IDs that the currently authenticated
+           user does not want to see retweets from.
+
+        Returns: List of IDs.
+        """
+        return self.request('GET', '1/friendships/no_retweet_ids', parameters)
 
