@@ -13,7 +13,7 @@ class Client(object):
         host='twitter.com',
         secure=True,
         parser=JSONParser(),
-        response_format='json'):
+        raw_response=None):
         """Create a new client object.
 
         auth -- A tuple that takes the format:
@@ -21,21 +21,20 @@ class Client(object):
                 These modes of authentication are supported: OAuth, Basic.
         host -- Hostname of the API server. Defaults to api.twitter.com
         secure -- Uses HTTPS if true (default), otherwise HTTP if false.
-        parser -- An instance of the parser which extends the Parser class.
-                  By default the JSONParser will be used.
-        response_format -- The response format to request from the server.
-                           Examples: json (default), xml, rss, atom.
+        parser -- Parses the responses from the server. (Default: JSONParser)
+        raw_response -- If specified no parsing will be performed on
+                        the server's response content. Instead the raw
+                        data in the requested format will be returned.
+                        Examples: json, xml, atom
         """
         self.base_url = '%s://%%s.%s/' % ('https' if secure else 'http', host)
-
         self.session = requests.session(auth=auth, config={'verbose': sys.stdout})
 
-        # Make sure parser supports response format.
-        if parser.supports_format(response_format) is False:
-            msg = 'Parse does not support response format: ' + response_format
-            raise TweepyError(msg)
-        self.parser = parser
-        self.response_format = response_format
+        if raw_response:
+            self.response_format = raw_response
+        else:
+            self.response_format = parser.response_format
+            self.parser = parser
 
     def request(self, method, url, parameters={}, files=None, subdomain='api'):
         """Send a request to API server.
