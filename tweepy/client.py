@@ -503,3 +503,37 @@ class Client(object):
         url = '1/users/suggestions/%s/members' % category
         return self.request('GET', url, parameters)
 
+    def favorites(self, user=None, **parameters):
+        """Returns the most recent favorite statuses for the
+           authenticating user or a specified user by ID or screen name.
+
+        user -- The screen name of ID of the user for whom to return results.
+
+        Returns: A list of status objects.
+        """
+        if user:
+            url = '1/favorites/%s' % user
+        else:
+            url = '1/favorites'
+        return self.request('GET', url, parameters)
+
+    def create_favorite(self, status, **parameters):
+        """Favorites the specified status as the authenticating user.
+
+        status -- The numerical ID of the status to favorite.
+
+        Returns: A status object on success.
+        """
+        url = '1/favorites/create/%s' % status
+        return self.request('POST', url, parameters)
+
+    def destroy_favorite(self, status, **parameters):
+        """Un-favorites the specified status as the authenticating user.
+
+        status -- The numerical ID of the status to un-favorite.
+
+        Returns: A status object on success.
+        """
+        url = '1/favorites/destroy/%s' % status
+        return self.request('POST', url, parameters)
+
