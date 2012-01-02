@@ -425,3 +425,81 @@ class Client(object):
         """
         return self.request('GET', '1/friendships/no_retweet_ids', parameters)
 
+    def lookup_users(self, users=None, user_ids=None, **parameters):
+        """Returns up to 100 users worth of extended information for a
+           list of user screen names or IDs.
+
+        users -- A list of user screen names to request. (max 100)
+        user_ids -- A list of user IDs to request. (max 100)
+
+        Returns: A list of user objects.
+        """
+        if users:
+            parameters['screen_name'] = ','.join(users)
+        if user_ids:
+            parameters['user_id'] = ','.join([str(ID) for ID in user_ids])
+        return self.request('GET', '1/users/lookup', parameters)
+
+    # TODO: implement users/profile_image/:screen_name
+
+    def search_users(self, query, **parameters):
+        """Runs a search for users.
+
+        query -- The search query to run against people search.
+
+        Returns: A list of user objects.
+        """
+        parameters['q'] = query
+        return self.request('GET', '1/users/search', parameters)
+
+    def show_user(self, user=None, **parameters):
+        """Returns extended information of a given user.
+
+        user -- The screen name of the user for whom to return results for.
+
+        Returns: An user object.
+        """
+        parameters['screen_name'] = user
+        return self.request('GET', '1/users/show', parameters)
+
+    def contributees(self, user=None, **parameters):
+        """Returns users that the specified user can contribute to.
+
+        user -- The screen name of the user for whom to return results for.
+
+        Returns: A list of user objects.
+        """
+        parameters['screen_name'] = user
+        return self.request('GET', '1/users/contributees', parameters)
+
+    def contributors(self, user=None, **parameters):
+        """Returns users who can contribute to the specified account.
+
+        user -- The screen name of the user for whom to return results for.
+
+        Returns: A list of user objects.
+        """
+        parameters['screen_name'] = user
+        return self.request('GET', '1/users/contributors', parameters)
+
+    def user_suggestion_categories(self, **parameters):
+        """Returns a list of user categories. The category can then
+           be passed to user_suggestions() to get a list of suggested users
+           for that specified catgeory.
+
+        Returns: A list of category objects.
+        """
+        return self.request('GET', '1/users/suggestions', parameters)
+
+    def user_suggestions(self, category, **parameters):
+        """Access the users in a given category of the suggested
+           user list. It is recommended that end clients cache this data
+           for no more than one hour.
+
+        category -- The category to fetch users for.
+
+        Returns: A list of user objects.
+        """
+        url = '1/users/suggestions/%s/members' % category
+        return self.request('GET', url, parameters)
+
