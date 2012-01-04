@@ -782,3 +782,39 @@ class Client(object):
                             parameters,
                             files={'image': image} if image else None)
 
+    def saved_searches(self):
+        """Returns the authenticated user's saved search queries.
+
+        Returns: A list of saved searches.
+        """
+        return self.request('GET', '1/saved_searches')
+
+    def saved_search_show(self, ID):
+        """Returns the information for the saved search represented
+           by the given ID. The authenticated user must own the saved search.
+
+        ID -- The ID of the saved search to return.
+
+        Returns: A saved search.
+        """
+        return self.request('GET', '1/saved_searches/show/%s' % ID)
+
+    def saved_search_create(self, query, **parameters):
+        """Creates a new saved search for the authenticated user.
+
+        query -- The query of the search the user would like to save.
+
+        Returns: A saved search.
+        """
+        parameters['query'] = query
+        return self.request('POST', '1/saved_searches/create', parameters)
+
+    def saved_search_destroy(self, ID):
+        """Destroys a saved search for the authenticating user.
+
+        ID -- The ID of the saved search to delete.
+
+        Returns: A saved search.
+        """
+        return self.request('POST', '1/saved_searches/destroy/%s' % ID)
+
