@@ -712,3 +712,73 @@ class Client(object):
         parameters['screen_name'] = user
         return self.request('GET', '1/lists/subscriptions', parameters)
 
+    def rate_limit_status(self):
+        """Returns the remaining number of API requests available to the
+           requesting user (if authenticated) or the IP address.
+
+        Returns: A dict containing rate limit info.
+        """
+        return self.request('GET', '1/account/rate_limit_status')
+
+    def verify_credentials(self):
+        """Verify user credentials are valid by performing
+           a request with authentication returning information about
+           the authenticated user.
+
+        Returns: An user object if successful, otherwise throws exception.
+        """
+        return self.request('GET', '1/account/verify_credentials')
+
+    def update_profile(self, **parameters):
+        """Sets values that users are able to set under the "Account" tab
+           on their settings page. Only the parameters specified will
+           be updated.
+
+        See Twitter API documentation for supported parameters.
+
+        Returns: A dict containing profile settings.
+        """
+        return self.request('POST', '1/account/update_profile', parameters)
+
+    def update_profile_background(self, image=None, **parameters):
+        """Updates the authenticating user's profile background image.
+           This method can also be used to enable or disable the
+           profile background image.
+
+        image -- (optional) A path to a file or a tuple with format:
+                   (filename, file-like-object)
+
+        Returns: A dict containing profile settings.
+        """
+        if isinstance(image, str):
+            image = (image, open(image, 'rb'))
+        return self.request('POST',
+                            '1/account/update_profile_background_image',
+                            parameters,
+                            files={'image': image} if image else None)
+
+    def update_profile_colors(self, **parameters):
+        """Sets one or more values that control the color scheme
+           of the authenticating user's profile page.
+
+        See Twitter API documentation for supported parameters.
+
+        Returns: A dict containing profile settings.
+        """
+        return self.request('POST', '1/account/update_profile_colors', parameters)
+
+    def update_profile_image(self, image, **parameters):
+        """Updates the authenticating user's profile image.
+
+        image -- (optional) A path to a file or a tuple with format:
+                   (filename, file-like-object)
+
+        Returns: A dict containing profile settings.
+        """
+        if isinstance(image, str):
+            image = (image, open(image, 'rb'))
+        return self.request('POST',
+                            '1/account/update_profile_image',
+                            parameters,
+                            files={'image': image} if image else None)
+
