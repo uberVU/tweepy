@@ -536,3 +536,179 @@ class Client(object):
         url = '1/favorites/destroy/%s' % status
         return self.request('POST', url, parameters)
 
+    def lists(self, user=None, **parameters):
+        """Returns all lists that an user subscribes to, including
+           their own.
+
+        user -- The screen name of the user for whom to return results for.
+
+        Returns: A list of list objects.
+        """
+        parameters['screen_name'] = user
+        return self.request('GET', '1/lists/all', parameters)
+
+    def list_timeline(self, owner=None, slug=None, **parameters):
+        """Returns tweet timeline for members of the specified list.
+
+        owner -- The screen name of the user who owns the list.
+        slug -- The slug of the list to return timeline for.
+
+        Returns: A list of status objects.
+        """
+        parameters.update({'slug': slug, 'owner_screen_name': owner})
+        return self.request('GET', '1/lists/statuses', parameters)
+
+    def list_add_member(self, owner=None, slug=None, member=None, **parameters):
+        """Adds one or more members to a list. The authenticated user
+           must own this list.
+
+        owner -- The screen name of the user who owns the list.
+        slug -- The slug of the list to add member(s) to.
+        member -- The screen name of the user to add as a member of
+                  the specified list. You may pass a list of screen names
+                  to add multiple members with one request.
+
+        Returns: A list object.
+        """
+        if isinstance(member, list):
+            member = ','.join(member)
+        parameters.update({'owner_screen_name': owner,
+                           'slug': slug,
+                           'screen_name': member})
+        return self.request('POST', '1/lists/members/create_all', parameters)
+
+    def list_remove_member(self, owner=None, slug=None, member=None, **parameters):
+        """Removes the specified member from the list. List must be owned
+           by the authenticating user.
+
+        owner -- The screen name of the user whom owns the list.
+        slug -- The slug of the list to remove the member from.
+        member -- The screen name of the user to remove from list as a member.
+
+        Returns: A list object.
+        """
+        parameters.update({'owner_screen_name': owner,
+                           'slug': slug,
+                           'screen_name': member})
+        return self.request('POST', '1/lists/members/destroy', parameters)
+
+    def list_memberships(self, user=None, **parameters):
+        """Returns the lists the specified user has been added to. If no
+           user is specified the authenticating user will be used.
+
+        user -- The screen name of the user for whom to return results.
+
+        Returns: A list of list objects.
+        """
+        parameters['screen_name'] = user
+        return self.request('GET', '1/lists/memberships', parameters)
+
+    def list_subscribers(self, owner=None, slug=None, **parameters):
+        """Returns the subscribers of the specified list.
+
+        owner -- The screen name of the user who owns the list.
+        slug -- The slug of the list to return subscribers for.
+
+        Returns: A list of user objects.
+        """
+        parameters.update({'owner_screen_name': owner,
+                           'slug': slug})
+        return self.request('GET', '1/lists/subscribers', parameters)
+
+    def list_members(self, owner=None, slug=None, **parameters):
+        """Returns the members of the specified list.
+
+        owner -- The screen name of the user who owns the list.
+        slug -- The slug of the list to return members for.
+
+        Returns: A list of user objects.
+        """
+        parameters.update({'owner_screen_name': owner,
+                           'slug': slug})
+        return self.request('GET', '1/lists/members', parameters)
+
+    def list_subscribe(self, owner=None, slug=None, **parameters):
+        """Subscribes the authenticated user to the specified list.
+
+        owner -- The screen name of the user who owns the list.
+        slug -- The slug of the list to subscribe.
+
+        Returns: A list object.
+        """
+        parameters.update({'owner_screen_name': owner,
+                           'slug': slug})
+        return self.request('POST', '1/lists/subscribers/create', parameters)
+
+    def list_unsubscribe(self, owner=None, slug=None, **parameters):
+        """Unsubscribes the authenticated user from the specified list.
+
+        owner -- The screen name of the user who owns the list.
+        slug -- The slug of the list to unsubscribe from.
+
+        Returns: A list object.
+        """
+        parameters.update({'owner_screen_name': owner,
+                           'slug': slug})
+        return self.request('POST', '1/lists/subscribers/destroy', parameters)
+
+    def list_destroy(self, owner=None, slug=None, **parameters):
+        """Deletes the specified list. Authenticated user must own the list.
+
+        owner -- The screen name of the user who owns the list.
+        slug -- The slug of the list to be destroyed.
+
+        Returns: A list object.
+        """
+        parameters.update({'owner_screen_name': owner,
+                           'slug': slug})
+        return self.request('POST', '1/lists/destroy', parameters)
+
+    def list_create(self, name, description=None, mode=None, **parameters):
+        """Creates a new list for the authenticated user.
+
+        name -- The name for the list.
+        description -- The description to give the list.
+        mode -- Whether your list is public or private. (Default: public)
+
+        Returns: A list object.
+        """
+        parameters.update({'name': name,
+                           'description': description,
+                           'mode': mode})
+        return self.request('POST', '1/lists/create', parameters)
+
+    def list_update(self, owner=None, slug=None, **parameters):
+        """Updates the specified list. Authenticated user must own this list.
+
+        owner -- The screen name of the user who owns the list.
+        slug -- The slug of the list to update.
+
+        Returns: A list object.
+        """
+        parameters.update({'owner_screen_name': owner,
+                           'slug': slug})
+        return self.request('POST', '1/lists/update', parameters)
+
+    def list_show(self, owner=None, slug=None, **parameters):
+        """Returns the specified list.
+
+        owner -- The screen name of the user who owns the list.
+        slug -- The slug of the list to return.
+
+        Returns: A list object.
+        """
+        parameters.update({'owner_screen_name': owner,
+                           'slug': slug})
+        return self.request('GET', '1/lists/show', parameters)
+
+    def list_subscriptions(self, user=None, **parameters):
+        """Returns a collection of lists the specified user subscribes to.
+           Does not include the user's own lists.
+
+        user -- The screen name of the user for whom to return results for.
+
+        Returns: A list of list objects.
+        """
+        parameters['screen_name'] = user
+        return self.request('GET', '1/lists/subscriptions', parameters)
+
