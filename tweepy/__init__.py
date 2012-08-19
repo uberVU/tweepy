@@ -21,3 +21,5 @@ class TweepyError(RuntimeError):
     def __str__(self):
         return self._message
 
+from .client import Client
+

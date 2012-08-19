@@ -1,113 +1,56 @@
-import sys
 import requests
-from urlparse import urljoin
-
-from tweepy import TweepyError
-from tweepy.parsers import JSONParser
-
 
 class Client(object):
 
-    def __init__(self,
-        auth=None,
-        host='twitter.com',
-        secure=True,
-        parser=JSONParser(),
-        raw_response=None):
-        """Create a new client object.
+    def __init__(self, auth=None):
+        self.http = requests.session(auth=auth)
 
-        auth -- A tuple that takes the format:
-                    (auth_mode, param_1, param_2, ..., param_n).
-                These modes of authentication are supported: OAuth, Basic.
-        host -- Hostname of the API server. Defaults to api.twitter.com
-        secure -- Uses HTTPS if true (default), otherwise HTTP if false.
-        parser -- Parses the responses from the server. (Default: JSONParser)
-        raw_response -- If specified no parsing will be performed on
-                        the server's response content. Instead the raw
-                        data in the requested format will be returned.
-                        Examples: json, xml, atom
-        """
-        self.base_url = '%s://%%s.%s/' % ('https' if secure else 'http', host)
-        self.session = requests.session(auth=auth, config={'verbose': sys.stdout})
+    def request(self, method, resource, **args):
+        url = 'https://api.twitter.com/1/%s.json' % resource
+        response = self.http.request(method, url, **args)
 
-        if raw_response:
-            self.response_format = raw_response
-        else:
-            self.response_format = parser.response_format
-            self.parser = parser
+        return response.json
 
-    def request(self, method, url, parameters={}, files=None, subdomain='api'):
-        """Send a request to API server.
-
-        method: type of HTTP method to send (ex: GET, DELETE, POST)
-        url: API endpoint URL minus the /<version> part.
-        parameters: API parameters to be sent with the request.
-        """
-        base_url = self.base_url % subdomain
-        url = '%s.%s' % (urljoin(base_url, url), self.response_format)
-
-        try:
-            r = self.session.request(method, url, params=dict(parameters), files=files)
-        except requests.exceptions.RequestException, e:
-            raise TweepyError('Request error: %s' % e)
-
-        if r.status_code != 200:
-            error_msg = self.parser.parse_error(r.content)
-            raise TweepyError('API error: %s' % error_msg)
-
-        if self.parser and len(r.content) > 0:
-            return self.parser.parse_content(r.content)
-        else:
-            return r.content
-
-    def home_timeline(self, **parameters):
+    def home_timeline(self, **p):
         """Returns the most recent statuses, including retweets, posted by
            the authenticating user and the user's they follow.
 
         Returns: List of status objects.
         """
-        return self.request('GET', '1/statuses/home_timeline', paramters)
+        return self.request('GET', 'statuses/home_timeline', params=p)
 
-    def mentions(self, **parameters):
+    def mentions(self, **p):
         """Returns the most recent mentions (status containing @username) for
            the autenticating user.
 
         Returns: List of status objects.
         """
-        return self.request('GET', '1/statuses/mentions', parameters)
+        return self.request('GET', 'statuses/mentions', params=p)
 
-    def public_timeline(self, **parameters):
-        """Returns the most recent statuses, including retweets, from
-           non-protected users. The public timeline is cached for 60 seconds.
-
-        Returns: List of status objects.
-        """
-        return self.request('GET', '1/statuses/public_timeline', parameters)
-
-    def retweeted_by_me(self, **parameters):
+    def retweeted_by_me(self, **p):
         """Returns the most recent retweets posted by the authenticating user.
 
         Returns: List of status objects.
         """
-        return self.request('GET', '1/statuses/retweeted_by_me', parameters)
+        return self.request('GET', 'statuses/retweeted_by_me', params=p)
 
-    def retweeted_to_me(self, **parameters):
+    def retweeted_to_me(self, **p):
         """Returns the most recent retweets posted by the users the
            authenticating user follows.
 
         Returns: List of status objects.
         """
-        return self.request('GET', '1/statuses/retweeted_to_me', parameters)
+        return self.request('GET', 'statuses/retweeted_to_me', params=p)
 
-    def retweets_of_me(self, **parameters):
+    def retweets_of_me(self, **p):
         """Returns the most recent tweets of the authenticated user
            that have been retweeted by others.
 
         Returns: List of status objects.
         """
-        return self.request('GET', '1/statuses/retweets_of_me', parameters)
+        return self.request('GET', 'statuses/retweets_of_me', params=p)
 
-    def user_timeline(self, user=None, **parameters):
+    def user_timeline(self, user=None, **p):
         """Returns the most recent statuses posted by the authenticating user.
            It is also possible to specify the user to return results for.
 
@@ -117,12 +60,12 @@ class Client(object):
         Returns: List of status objects.
         """
         if user:
-            url = '1/statuses/user_timeline/%s' % user
+            url = 'statuses/user_timeline/%s' % user
         else:
-            url = '1/statuses/user_timeline'
-        return self.request('GET', url, parameters)
+            url = 'statuses/user_timeline'
+        return self.request('GET', url, params=p)
 
-    def retweeted_to_user(self, user=None, **parameters):
+    def retweeted_to_user(self, user=None, **p):
         """Returns the most recent retweets posted by users the specified user
            follows. Identical to retweeted_to_me, but allows providing user.
 
@@ -130,10 +73,10 @@ class Client(object):
 
         Returns: List of status objects.
         """
-        parameters['id'] = user
-        return self.request('GET', '1/statuses/retweeted_to_user', parameters)
+        p['id'] = user
+        return self.request('GET', 'statuses/retweeted_to_user', params=p)
 
-    def retweeted_by_user(self, user=None, **parameters):
+    def retweeted_by_user(self, user=None, **p):
         """Returns the most recent retweets posted by the specified user.
            Identical to retweeted_by_me except you can choose the user.
 
@@ -141,8 +84,8 @@ class Client(object):
 
         Returns: List of status objects.
         """
-        parameters['id'] = user
-        return self.request('GET', '1/statuses/retweeted_by_user', parameters)
+        p['id'] = user
+        return self.request('GET', 'statuses/retweeted_by_user', params=p)
 
     def retweeted_by(self, status_id, only_ids=False, **parameters):
         """Show user objects up to 100 members who retweeted the status.
